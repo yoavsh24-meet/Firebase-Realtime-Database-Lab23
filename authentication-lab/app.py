@@ -17,20 +17,24 @@ firebase = pyrebase.initialize_app(config)
 auth = firebase.auth()
 error = ""
 db = firebase.database()
-user = {}
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
         email = request.form["email"]
         password = request.form["password"]
         fullname = request.form["fullname"]
         username = request.form["username"]
-        bio = request.form["bio "]
-        try:
-            login_session['user'] = auth.create_user_with_email_and_password(email, password)
-            return redirect(url_for('add_tweet'))
-        except:
-            error = "auth failed :(c"
-            return render_template('signup.html')
+        bio = request.form["bio"]
+        #try:
+        login_session['user'] = auth.create_user_with_email_and_password(email, password)
+        UID = login_session['user']['localId']
+        user = {'email': email, "password": password, "fullname" : fullname, 'username': username, 'bio': bio}
+        db.child("Users").child(UID).set(user)
+        return redirect(url_for("add_tweet"))
+        #except:
+        error = "auth failed :(c"
+        return render_template('signup.html')
+
     return render_template("signup.html")
 @app.route('/', methods=['GET', 'POST'])
 def signin():
@@ -46,11 +50,22 @@ def signin():
 
 @app.route('/add_tweet', methods=['GET', 'POST'])
 def add_tweet():
+    if request.method == 'POST':
+        title = request.form['title']
+        text = request.form['text']
+        try:
+            UID = login_session['user']['localId']
+            tweet = {"title": title, "text": text}
+            db.child("tweets").push(tweet)
+            return redirect(url_for('all_tweets.html'))
+        except:
+            error = "tweet failed"
+            return redirect(url_for('add_tweet'))
     return render_template("add_tweet.html")
-
-#If the method is 'POST' take the inputs and signin the user with email & password.
-#Don't forget to store the user in the login session and to use try and except.
-#Redirect the route to the add tweet page
+@app.route('/all_tweets', methods=['GET', 'POST'])
+def tweets():
+    tweets = db.child("tweets").get().val()
+    return render_template("all_tweets.html", tweets=tweets)
 
 
 if __name__ == '__main__':

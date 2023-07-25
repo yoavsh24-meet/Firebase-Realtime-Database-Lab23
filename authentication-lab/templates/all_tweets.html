@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tweets</title>
+</head>
+<body>
+    <ul>
+        {% for tweet in tweets %}
+        <li>{{ tweets[tweet]['title'] }} <br>
+        {% endfor %}
+    </ul>
+
+    <a href="/add_tweet"><button>Add Tweet</button></a>
+</body>
+</html>
